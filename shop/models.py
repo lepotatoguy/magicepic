@@ -100,5 +100,24 @@ class Product(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
+    def get_url(self):
+        return reverse('product_detail', args=[self.category.slug, self.slug])
+
     def __str__(self):
         return self.product_name
+
+class Cart(models.Model):
+    cart_id = models.CharField(max_length=200, blank = True)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.cart_id
+
+class CartItem(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    is_active = models.BooleanField(default = True)
+
+    def __str__(self):
+        return self.product
