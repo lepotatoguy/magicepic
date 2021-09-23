@@ -31,3 +31,14 @@ admin.site.register(Product, ProductAdmin)
 
 admin.site.register(Cart)
 admin.site.register(CartItem)
+admin.site.register(Discount)
+
+
+class VariationAdmin(admin.ModelAdmin):
+    list_display = ('product', 'variation_value', 'is_active')
+    list_editable = ('is_active',)
+    list_filter = ('product', 'variation_value')
+    # will add product variation here when more variation will be added 
+
+
+admin.site.register(Variation, VariationAdmin)

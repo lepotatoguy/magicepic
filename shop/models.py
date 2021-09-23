@@ -124,3 +124,30 @@ class CartItem(models.Model):
 
     def __str__(self):
         return self.product
+
+class Discount(models.Model):
+    promo_code = models.CharField(max_length=200, unique = True)
+    date_end = models.DateTimeField()
+    percent = models.IntegerField()
+    amount = models.IntegerField()
+    is_active = models.BooleanField(default = False)
+
+    def __str__(self):
+        return self.promo_code
+
+class VariationManager(models.Manager):
+    def varient(self): #If needed, more functions will be added. more function = more varient
+        return super(VariationManager, self).filter(variation_category='varient', is_active=True)
+variation_category_choice = (
+    ('varient', 'varient'),
+    # ('color', 'color'),
+)
+class Variation(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    variation_category = models.CharField(max_length=200, choices=variation_category_choice)
+    variation_value = models.CharField(max_length=200)
+    date_created = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default = True)
+
+    def __unicode__(self):
+        return self.product
