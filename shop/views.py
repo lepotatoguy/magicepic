@@ -18,9 +18,6 @@ from django.core.mail import send_mail, BadHeaderError, EmailMultiAlternatives
 
 # Create your views here.
 from django.http import HttpResponse
-
-import smtplib, ssl
-# from email.message import EmailMessage
 from decouple import config
 
 #returns home page
@@ -275,7 +272,7 @@ def register(request):
             current_site = get_current_site(request)
             to_mail =  email
             subject = "Please activate your account - MagicEpic"
-            subject, from_email, to = f'{subject}', 'joyanta.csebracu@gmail.com', f'{to_mail}'
+            subject, from_email, to = f'{subject}', 'joyanta.csebracu@gmail.com', f'{to_mail}' # 'no_reply@magicepic-bd.com', 
             cc_email = ['a.t.m.masum.billah@g.bracu.ac.bd']
             text_content = ''
             html_content = render_to_string('shop/accounts/account_verification_email.html', {
@@ -286,7 +283,9 @@ def register(request):
              })
 
             try:
-                msg = EmailMultiAlternatives(subject, text_content, from_email, [to],cc=cc_email)
+                msg = EmailMultiAlternatives(subject, text_content, from_email, [to]
+                # ,cc=cc_email
+                )
                 msg.attach_alternative(html_content, "text/html")
                 # msg.attach_file(location/to/path)
                 msg.send()
@@ -294,36 +293,8 @@ def register(request):
                 success = True
             except:
                 print('mail does not send to -', to_mail)
-
-
-            #My One
-            # current_site = get_current_site(request)
-            # mail_subject = "Please activate your account - MagicEpic"
-            # message = render_to_string('shop/accounts/account_verification_email.html', {
-            #     'user': user,
-            #     'domain': current_site,
-            #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            #     'token': default_token_generator.make_token(user),
-            # })
-            # to_email = email
-            # # send_email = EmailMessage(mail_subject, message, to=[to_email])
-            # # send_email.send()
-            # msg = EmailMessage()
-            # msg.set_content(message)
-            # msg["Subject"] = mail_subject
-            # msg["From"] = config('EMAIL_HOST_USER')
-            # msg["To"] = to_email
-
-            # context=ssl.create_default_context()
-
-            # with smtplib.SMTP(config('EMAIL_HOST'), config('EMAIL_PORT')) as smtp:
-            #     # smtp.starttls(context=context)
-            #     smtp.starttls()
-            #     smtp.login(config('EMAIL_HOST_USER'), config('EMAIL_HOST_PASSWORD'))
-            #     smtp.sendmail(msg["From"], msg["To"], msg)
-            
-        messages.success(request, "Registration Successful.")
-        return redirect('register')
+            print(to_mail)
+            return redirect('/login/?command=verification&email='+to_mail)    
     else:
         form = RegistrationForm()
     context = {
@@ -332,7 +303,20 @@ def register(request):
     return render(request, 'shop/accounts/register.html', context)
 
 def activate(request, uidb64, token):
-    return HttpResponse("Ok")
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = Account._default_manager.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, Account.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Congratulations! Your account is successfully activated!')
+        return redirect('login')
+    else:
+        messages.error(request, 'Invalid activation link')
+        return redirect('register')
 
 
 def login(request):
@@ -345,7 +329,7 @@ def login(request):
         if user is not None:
             auth.login(request, user)
             messages.success(request, "You are now logged in.")
-            return redirect('index')
+            return redirect('dashboard')
         else:
             messages.error(request, "Invalid login credentials.")
             return redirect('login')
@@ -356,3 +340,77 @@ def logout(request):
     auth.logout(request)
     messages.success(request, "You are now logged out.")
     return redirect('login')
+
+@login_required(login_url = "login")
+def dashboard(request):
+    return render(request,'shop/accounts/dashboard.html')
+
+def forgotPassword(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        if Account.objects.filter(email=email).exists():
+            user = Account.objects.get(email__exact=email)
+        # Reset Password
+            current_site = get_current_site(request)
+            to_mail =  email
+            subject = "Reset Your Password - MagicEpic"
+            subject, from_email, to = f'{subject}', 'joyanta.csebracu@gmail.com', f'{to_mail}' # 'no_reply@magicepic-bd.com',
+            cc_email = ['a.t.m.masum.billah@g.bracu.ac.bd']
+            text_content = ''
+            html_content = render_to_string('shop/accounts/reset_password_email.html', {
+                 'user': user,
+                 'domain': current_site,
+                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                 'token': default_token_generator.make_token(user),
+             })
+
+            try:
+                msg = EmailMultiAlternatives(subject, text_content, from_email, [to]
+                # ,cc=cc_email
+                )
+                msg.attach_alternative(html_content, "text/html")
+                # msg.attach_file(location/to/path)
+                msg.send()
+                print("True")
+                success = True
+                messages.success(request, 'Password Reset Email has been sent to your email address. If not found, please check it in Spam/Others/All Mail Folder(s).')
+                return redirect('login')
+            except:
+                print('mail does not send to -', to_mail)    
+        
+        else:
+            messages.error(request, 'Account does not exist.')
+            return redirect('forgotPassword')
+        return render(request,'shop/accounts/forgotPassword.html')
+
+def resetpassword_validate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = Account._default_manager.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, Account.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        request.session['uid'] = uid
+        messages.success(request, 'Please reset your password')
+        return redirect('resetPassword')
+    else:
+        messages.error(request, 'Link Expired/ Invalid Link')
+        return redirect('login')
+
+def resetPassword(request):
+    if request.method == 'POST':
+        password = request.POST['password']
+        confirm_password = request.POST['confirm_password']
+
+        if password == confirm_password:
+            uid = request.session.get('uid')
+            user = Account.objects.get(pk=uid)
+            user.set_password(password)
+            messages.success(request, 'Password reset successful!')
+            return redirect('login')
+        else:
+            messages.error(request, 'Password do not match!')
+            return redirect('resetPassword')
+    else:
+        return render(request, 'shop/accounts/resetPassword.html')
