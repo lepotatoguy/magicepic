@@ -14,10 +14,14 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail, BadHeaderError, EmailMultiAlternatives
 
 # Create your views here.
 from django.http import HttpResponse
+
+import smtplib, ssl
+# from email.message import EmailMessage
+from decouple import config
 
 #returns home page
 def index(request):
@@ -269,18 +273,57 @@ def register(request):
 
             # User Activation
             current_site = get_current_site(request)
-            mail_subject = "Please activate your account."
-            message = render.to_string('accounts/account_verification_email.html', {
-                'user': user,
-                'domain': current_site,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user)
-            })
-            to_email = email
-            send_email = EmailMessage(mail_subject, message, to=[to_email])
-            send_email.send()
-            messages.success(request, "Registration Successful.")
-            return redirect('register')
+            to_mail =  email
+            subject = "Please activate your account - MagicEpic"
+            subject, from_email, to = f'{subject}', 'joyanta.csebracu@gmail.com', f'{to_mail}'
+            cc_email = ['a.t.m.masum.billah@g.bracu.ac.bd']
+            text_content = ''
+            html_content = render_to_string('shop/accounts/account_verification_email.html', {
+                 'user': user,
+                 'domain': current_site,
+                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                 'token': default_token_generator.make_token(user),
+             })
+
+            try:
+                msg = EmailMultiAlternatives(subject, text_content, from_email, [to],cc=cc_email)
+                msg.attach_alternative(html_content, "text/html")
+                # msg.attach_file(location/to/path)
+                msg.send()
+                print("True")
+                success = True
+            except:
+                print('mail does not send to -', to_mail)
+
+
+            #My One
+            # current_site = get_current_site(request)
+            # mail_subject = "Please activate your account - MagicEpic"
+            # message = render_to_string('shop/accounts/account_verification_email.html', {
+            #     'user': user,
+            #     'domain': current_site,
+            #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            #     'token': default_token_generator.make_token(user),
+            # })
+            # to_email = email
+            # # send_email = EmailMessage(mail_subject, message, to=[to_email])
+            # # send_email.send()
+            # msg = EmailMessage()
+            # msg.set_content(message)
+            # msg["Subject"] = mail_subject
+            # msg["From"] = config('EMAIL_HOST_USER')
+            # msg["To"] = to_email
+
+            # context=ssl.create_default_context()
+
+            # with smtplib.SMTP(config('EMAIL_HOST'), config('EMAIL_PORT')) as smtp:
+            #     # smtp.starttls(context=context)
+            #     smtp.starttls()
+            #     smtp.login(config('EMAIL_HOST_USER'), config('EMAIL_HOST_PASSWORD'))
+            #     smtp.sendmail(msg["From"], msg["To"], msg)
+            
+        messages.success(request, "Registration Successful.")
+        return redirect('register')
     else:
         form = RegistrationForm()
     context = {
@@ -288,8 +331,8 @@ def register(request):
     }
     return render(request, 'shop/accounts/register.html', context)
 
-def activate(request):
-    return
+def activate(request, uidb64, token):
+    return HttpResponse("Ok")
 
 
 def login(request):
