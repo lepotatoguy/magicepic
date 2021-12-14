@@ -95,7 +95,7 @@ class Product(models.Model):
     description = models.TextField(max_length = 2000, blank=True)
     price = models.IntegerField()
     image = models.ImageField(upload_to='photos/products/')
-    stock = models.IntegerField()
+    stock = models.IntegerField() #stock
     is_available = models.BooleanField(default = False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -130,6 +130,7 @@ class Variation(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variation_category = models.CharField(max_length=200, choices=variation_category_choice)
     variation_value = models.CharField(max_length=200)
+    # quantity = models.IntegerField()
     date_created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default = True)
 
@@ -140,14 +141,16 @@ class Variation(models.Model):
 class Cart(models.Model):
     cart_id = models.CharField(max_length=200, blank = True)
     date_added = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
         return self.cart_id
 
 class CartItem(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variations = models.ManyToManyField(Variation, blank=True)
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
     is_active = models.BooleanField(default = True)
 
@@ -156,3 +159,75 @@ class CartItem(models.Model):
 
     def __unicode__(self):
         return self.product
+
+
+#order
+
+class Payment(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE) 
+    payment_id = models.CharField(max_length=200)
+    payment_method = models.CharField(max_length=200)
+    amount_paid = models.CharField(max_length=200)
+    status = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.payment_id
+
+class Cart_Discount_Delivery(models.Model): #for cart discounts and delivery cost
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    delivery_cost = models.IntegerField()
+    discount = models.FloatField()
+
+
+class Order(models.Model):
+    STATUS = (
+        ('New', 'New'),
+        ('Accepted', 'Accepted'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    )
+
+    user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True) 
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True) 
+    order_number = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=200)
+    last_name = models.CharField(max_length=200)
+    phone = models.CharField(max_length=200)
+    email = models.EmailField(max_length=200)
+    address_line_1 = models.CharField(max_length=200)
+    address_line_2 = models.CharField(max_length=200)
+    district = models.CharField(max_length=200)
+    city = models.CharField(max_length=200)
+    total = models.CharField(max_length=200)
+    delivery_cost = models.IntegerField(default=120)
+    discount = models.FloatField(default=0)
+    status = models.CharField(max_length=200, choices=STATUS, default='New')
+    ip = models.CharField(max_length=200)
+    order_note = models.CharField(max_length=200)
+    is_ordered = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '{} {} {}'.format(self.order_number, self.first_name, self.last_name)
+
+class OrderProduct(models.Model):
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE) 
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE) 
+    variation = models.ForeignKey(Variation, on_delete=models.CASCADE)   
+    order_number = models.CharField(max_length=200)
+    color = models.CharField(max_length=200)
+    size = models.CharField(max_length=200)
+    quantity = models.IntegerField()
+    product_price = models.FloatField()
+    ordered = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.product.product_name
+

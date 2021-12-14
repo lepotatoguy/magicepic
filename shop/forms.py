@@ -1,5 +1,5 @@
 from django import forms
-from .models import Account
+from .models import *
 
 class RegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
@@ -31,3 +31,15 @@ class RegistrationForm(forms.ModelForm):
 
         if password!=confirm_password:
             raise forms.ValidationError("Passwords do not match! Try again.")
+
+class CartDiscountDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = Cart_Discount_Delivery
+        fields = ['delivery_cost', 'discount']
+
+
+class OrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['first_name', 'last_name', 'phone', 'email', 'address_line_1', 'address_line_2', 'district', 'city', 'order_note']
+

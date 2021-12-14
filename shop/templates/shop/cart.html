@@ -5,242 +5,317 @@
 
 
 <section class="section-content padding-y bg">
-    <div class="container">
-    
+  <div class="container">
+
     <!-- ============================ COMPONENT 1 ================================= -->
     {% if not cart_items %}
     <div class="text-center">
-        <h2>Your shopping cart is empty.</h2>
-        <br>
-        
-        <a href="{% url 'store' %}" class='btn btn-primary'>Start Shopping!</a>
+      <h2>Your shopping cart is empty.</h2>
+      <br>
+
+      <a href="{% url 'store' %}" class='btn btn-primary'>Start Shopping!</a>
     </div>
-        {% else %}
-    <div class="row">
-        <aside class="col-lg-9">
-    <div class="card">
-    <table class="table table-borderless table-shopping-cart">
-    <thead class="text-muted">
-    <tr class="small text-uppercase">
-      <th scope="col">Product</th>
-      <th scope="col" width="120">Quantity</th>
-      <th scope="col" width="120">Price</th>
-      <th scope="col" class="text-right" width="200"> </th>
-    </tr>
-    </thead>
-    <tbody>
-        {% for cart_item in cart_items %}
-    <tr>
-        <td>
-            <figure class="itemside align-items-center">
-                <div class="aside"><img src="{{ cart_item.product.image.url }}" class="img-sm"></div>
-                <figcaption class="info">
-                    <a href="{{ cart_item.product.get_url }}" class="title text-dark">{{ cart_item.product.product_name }}</a>
-                    <p class="text-muted small">
-                      {% if cart_item.variations.all %}
-                      {% for item in cart_item.variations.all %}
-                      {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
-                      {% endfor %}
-                      {% endif %}
-                    </p>
-                </figcaption>
-            </figure>
-        </td>
-        <td> 
-            <!-- col.// -->
-                        <div class="col"> 
-                            <div class="input-group input-spinner">
-                                <div class="input-group-prepend">
-                                <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
-                                </div>
-                                <input type="text" class="form-control"  value="{{ cart_item.quantity }}">
-                                <div class="input-group-append">
-                                  <form action="{% url 'add_cart' cart_item.product.id %}" method="post">
-                                    {% csrf_token %}
-                                    {% for item in cart_item.variations.all %}
-                                    <input type="hidden" name="{{item.variation_category | lower}}" value="{{ item.variation_value | capfirst }}">
-                              {% endfor %}
-                              <button href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
-                              </form>  
-                              </div>
-                            </div> <!-- input-group.// -->
-                        </div> <!-- col.// -->
-        </td>
-        <td> 
-            <div class="price-wrap"> 
-                <var class="price">৳{{cart_item.sub_total}} </var> 
-                <small class="text-muted"> ৳{{cart_item.product.price}} each </small> 
-            </div> <!-- price-wrap .// -->
-        </td>
-        <td class="text-right"> 
-        <a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" onclick="return confirm('Are you sure you want to remove this item?')" class="btn btn-danger"> Remove</a>
-        </td>
-    </tr>
-    {% endfor %}
-    
-
-
-    </tbody>
-    </table>
-    </div> <!-- card.// -->
-    {% if discount < 0 %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong>Invalid!</strong> The coupon you added is unavailable.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-
-    <div class="card">
-        <table class="table table-borderless table-shopping-cart">
-        <thead class="text-muted">
-        <tr class="small text-uppercase">
-          <th scope="col">Discount</th>
-          <th scope="col" class="text-right" width="200"> </th>
-        </tr>
-        </thead>
-        <tbody>
-    
-        <tr>
-            <form action="{% url 'cart' %}" class="discount" method='POST'> {% csrf_token %}
-                
-            <td>
-                <div class="col">
-                    <input type="text" class="form-control" placeholder="Discount (If Any)" name="discount">
-                  </div>
-            </td>
-    
-            <td class="text-right"> 
-            <button class="btn btn-primary" type="submit"> Add</button>
-            </td>
-        </form>
-        </tr>
-    
-        
-    
-    
-        </tbody>
-        </table>
-        </div>
-
-    {% elif discount > 0 %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>Voila!</strong> Your discount has been added.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="card">
-        <table class="table table-borderless table-shopping-cart">
-        <thead class="text-muted">
-        <tr class="small text-uppercase">
-          <th scope="col">Discount</th>
-          <th scope="col" class="text-right" width="200"> </th>
-        </tr>
-        </thead>
-        <tbody>
-    
-        <tr>
-            <form action="{% url 'cart' %}" class="discount" method='POST'> {% csrf_token %}
-                
-            <td>
-                <div class="col">
-                    <input type="text" class="form-control" placeholder="Discount (If Any)" name="discount" value="{{discount_code}}">
-                  </div>
-            </td>
-    
-            <td class="text-right"> 
-            <button class="btn btn-primary" type="submit"> Add</button>
-            </td>
-        </form>
-        </tr>
-    
-        
-    
-    
-        </tbody>
-        </table>
-        </div>
     {% else %}
-    <div class="card">
-    <table class="table table-borderless table-shopping-cart">
-    <thead class="text-muted">
-    <tr class="small text-uppercase">
-      <th scope="col">Discount</th>
-      <th scope="col" class="text-right" width="200"> </th>
-    </tr>
-    </thead>
-    <tbody>
+    <div class="row">
+      <aside class="col-lg-9">
+        <div class="card">
+          <table class="table table-borderless table-shopping-cart">
+            <thead class="text-muted">
+              <tr class="small text-uppercase">
+                <th scope="col">Product</th>
+                <th scope="col" width="120">Quantity</th>
+                <th scope="col" width="120">Price</th>
+                <th scope="col" class="text-right" width="200"> </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cart_item in cart_items %}
+              <tr>
+                <td>
+                  <figure class="itemside align-items-center">
+                    <div class="aside"><img src="{{ cart_item.product.image.url }}" class="img-sm"></div>
+                    <figcaption class="info">
+                      <a href="{{ cart_item.product.get_url }}"
+                        class="title text-dark">{{ cart_item.product.product_name }}</a>
+                      <p class="text-muted small">
+                        {% if cart_item.variations.all %}
+                        {% for item in cart_item.variations.all %}
+                        {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
+                        {% endfor %}
+                        {% endif %}
+                      </p>
+                    </figcaption>
+                  </figure>
+                </td>
+                <td>
+                  <!-- col.// -->
+                  <div class="col">
+                    <div class="input-group input-spinner">
+                      <div class="input-group-prepend">
+                        <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light"
+                          type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
+                      </div>
+                      <input type="text" class="form-control" value="{{ cart_item.quantity }}">
+                      <div class="input-group-append">
+                        <form action="{% url 'add_cart' cart_item.product.id %}" method="post">
+                          {% csrf_token %}
+                          {% for item in cart_item.variations.all %}
+                          <input type="hidden" name="{{item.variation_category | lower}}"
+                            value="{{ item.variation_value | capfirst }}">
+                          {% endfor %}
+                          <button href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-light" type="submit"
+                            id="button-minus"> <i class="fa fa-plus"></i> </button>
+                        </form>
+                      </div>
+                    </div> <!-- input-group.// -->
+                  </div> <!-- col.// -->
+                </td>
+                <td>
+                  <div class="price-wrap">
+                    <var class="price">৳{{cart_item.sub_total}} </var>
+                    <small class="text-muted"> ৳{{cart_item.product.price}} each </small>
+                  </div> <!-- price-wrap .// -->
+                </td>
+                <td class="text-right">
+                  <a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}"
+                    onclick="return confirm('Are you sure you want to remove this item?')" class="btn btn-danger">
+                    Remove</a>
+                </td>
+              </tr>
+              {% endfor %}
 
-    <tr>
-        <form action="{% url 'cart' %}" class="discount" method='POST'> {% csrf_token %}
-            
-        <td>
-            <div class="col">
-                <input type="text" class="form-control" placeholder="Discount (If Any)" name="discount">
-              </div>
-        </td>
-
-        <td class="text-right"> 
-        <button class="btn btn-primary" type="submit"> Add</button>
-        </td>
-    </form>
-    </tr>
-
-    
 
 
-    </tbody>
-    </table>
-    </div>
-    {% endif %}
+            </tbody>
+          </table>
+        </div> <!-- card.// -->
+        <div class="card">
+          <table class="table table-borderless table-shopping-cart">
+            <thead class="text-muted">
+              <tr class="small text-uppercase">
+                <th scope="col">Location*</th>
+                <th scope="col" class="text-right" width="200"> </th>
+              </tr>
+            </thead>
+            <tbody>
 
-   
+              <tr>
+                <form action="{% url 'cart' %}" class="location" method='POST'> {% csrf_token %}
+                  <td>
+                    {% if delivery_cost == 0 %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="location" id="inside_dhaka" value="1">
+                      <label class="form-check-label" for="exampleRadios1">
+                        Inside Dhaka City
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="location" id="outside_dhaka" value="0">
+                      <label class="form-check-label" for="exampleRadios2">
+                        Outside Dhaka City
+                      </label>
+                    </div>
+                    {% elif delivery_cost == 60 %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="location" id="inside_dhaka" value="1" checked>
+                      <label class="form-check-label" for="exampleRadios1">
+                        Inside Dhaka City
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="location" id="outside_dhaka" value="0">
+                      <label class="form-check-label" for="exampleRadios2">
+                        Outside Dhaka City
+                      </label>
+                    </div>
+                    {% elif delivery_cost == 120 %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="location" id="inside_dhaka" value="1">
+                      <label class="form-check-label" for="exampleRadios1">
+                        Inside Dhaka City
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="location" id="outside_dhaka" value="0" checked>
+                      <label class="form-check-label" for="exampleRadios2">
+                        Outside Dhaka City
+                      </label>
+                    </div>
+                    {%endif%}
+                  </td>
+                  <td class="text-right">
+                    <button class="btn btn-primary" type="submit"> Add</button>
+                  </td>
+                </form>
+              </tr>
 
 
-    
-    
-        </aside> <!-- col.// -->
-        <aside class="col-lg-3">
-    
-            <div class="card">
-            <div class="card-body">
-                <dl class="dlist-align">
-                  <dt>Total price:</dt>
-                  <dd class="text-right">৳{{total}}</dd>
-                </dl>
-                {% if discount >= 0 %}
-                <dl class="dlist-align">
-                    <dt>Discount:</dt>
-                    <dd class="text-right"> ৳{{discount}}</dd>
-                  </dl>
-                  {% endif %}
-                <dl class="dlist-align">
-                  <dt>Delivery Cost:</dt>
-                  <dd class="text-right"> ৳{{delivery_cost}}</dd>
-                </dl>
-                <dl class="dlist-align">
-                  <dt>Total:</dt>
-                  <dd class="text-right text-dark b"><strong>৳{{grand_total}}</strong></dd>
-                </dl>
-                <hr>
-                <p class="text-center mb-3">
-                    <img src="{% static 'shop/images/misc/payments.png' %}" height="26">
-                </p>
-                <a href="./place-order.html" class="btn btn-primary btn-block"> Checkout </a>
-                <a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
-            </div> <!-- card-body.// -->
-            </div> <!-- card.// -->
-    
-    </aside> <!-- col.// -->
-    
-    
+
+
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Discount  -->
+        {% if discount < 0 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <strong>Invalid!</strong> The coupon you added is unavailable.
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <table class="table table-borderless table-shopping-cart">
+            <thead class="text-muted">
+              <tr class="small text-uppercase">
+                <th scope="col">Discount</th>
+                <th scope="col" class="text-right" width="200"> </th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <form action="{% url 'cart' %}" class="discount" method='POST'> {% csrf_token %}
+
+                  <td>
+                    <div class="col">
+                      <input type="text" class="form-control" placeholder="Discount (If Any)" name="discount">
+                    </div>
+                  </td>
+
+                  <td class="text-right">
+                    <button class="btn btn-primary" type="submit"> Add</button>
+                  </td>
+                </form>
+              </tr>
+
+
+
+
+            </tbody>
+          </table>
+        </div>
+
+        {% elif discount > 0 %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <strong>Voila!</strong> Your discount has been added.
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="card">
+          <table class="table table-borderless table-shopping-cart">
+            <thead class="text-muted">
+              <tr class="small text-uppercase">
+                <th scope="col">Discount</th>
+                <th scope="col" class="text-right" width="200"> </th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <form action="{% url 'cart' %}" class="discount" method='POST'> {% csrf_token %}
+
+                  <td>
+                    <div class="col">
+                      <input type="text" class="form-control" placeholder="Discount (If Any)" name="discount"
+                        value="{{discount_code}}">
+                    </div>
+                  </td>
+
+                  <td class="text-right">
+                    <button class="btn btn-primary" type="submit"> Add</button>
+                  </td>
+                </form>
+              </tr>
+
+
+
+
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="card">
+          <table class="table table-borderless table-shopping-cart">
+            <thead class="text-muted">
+              <tr class="small text-uppercase">
+                <th scope="col">Discount</th>
+                <th scope="col" class="text-right" width="200"> </th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <form action="{% url 'cart' %}" class="discount" method='POST'> {% csrf_token %}
+
+                  <td>
+                    <div class="col">
+                      <input type="text" class="form-control" placeholder="Discount (If Any)" name="discount">
+                    </div>
+                  </td>
+
+                  <td class="text-right">
+                    <button class="btn btn-primary" type="submit"> Add</button>
+                  </td>
+                </form>
+              </tr>
+
+
+
+
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+
+
+
+
+
+
+      </aside> <!-- col.// -->
+      <aside class="col-lg-3">
+
+        <div class="card">
+          <div class="card-body">
+            <dl class="dlist-align">
+              <dt>Total price:</dt>
+              <dd class="text-right">৳{{total}}</dd>
+            </dl>
+            {% if discount >= 0 %}
+            <dl class="dlist-align">
+              <dt>Discount:</dt>
+              <dd class="text-right"> ৳{{discount}}</dd>
+            </dl>
+            {% endif %}
+            <dl class="dlist-align">
+              <dt>Delivery Cost:</dt>
+              <dd class="text-right"> ৳{{delivery_cost}}</dd>
+            </dl>
+            <dl class="dlist-align">
+              <dt>Total:</dt>
+              <dd class="text-right text-dark b"><strong>৳{{grand_total}}</strong></dd>
+            </dl>
+            <hr>
+            <p class="text-center mb-3">
+              <img src="{% static 'shop/images/misc/payments.png' %}" height="26">
+            </p>
+            <a href="{% url 'checkout' %}" class="btn btn-primary btn-block"> Checkout </a>
+            <a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
+          </div> <!-- card-body.// -->
+        </div> <!-- card.// -->
+
+      </aside> <!-- col.// -->
+
+
     </div> <!-- row.// -->
     {% endif %}
     <!-- ============================ COMPONENT 1 END .// ================================= -->
-    
-    </div> <!-- container .//  -->
-    </section>
-    <!-- ========================= SECTION CONTENT END// ========================= -->
+
+  </div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
 
 {% endblock %}

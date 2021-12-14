@@ -48,3 +48,7 @@ class VariationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Variation, VariationAdmin)
+admin.site.register(Order)
+admin.site.register(Payment)
+admin.site.register(OrderProduct)
+admin.site.register(Cart_Discount_Delivery)
